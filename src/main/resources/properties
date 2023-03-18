@@ -1,0 +1,1 @@
+strategy = memory.cache.cacheReplacementStrategy.FIFOReplacement

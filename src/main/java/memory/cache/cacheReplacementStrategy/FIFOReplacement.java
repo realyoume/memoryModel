@@ -24,6 +24,7 @@ public class FIFOReplacement implements ReplacementStrategy {
                 minIndex = i;
             }
         }
+
         if (Cache.isWriteBack) {
             if (Cache.getCache().isDirty(minIndex) && Cache.getCache().isValid(minIndex)) {
                 String addr = Cache.getCache().calculatePAddr(minIndex);

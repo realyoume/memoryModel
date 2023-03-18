@@ -1,11 +1,14 @@
 package memory.cache;
 
+
 import memory.Memory;
-import memory.cache.cacheReplacementStrategy.FIFOReplacement;
 import memory.cache.cacheReplacementStrategy.ReplacementStrategy;
 import util.Transformer;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Properties;
 
 /**
  * 高速缓存抽象类
@@ -25,16 +28,42 @@ public class Cache {
     private int setSize = 4;    // 每组行数
 
     // 单例模式
-    private static final Cache cacheInstance = new Cache();
+    private static final Cache cacheInstance;
 
-    private Cache() {
+    static {
+        try {
+            cacheInstance = new Cache();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Cache() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+        // 动态配置策略模式
+        Properties properties = new Properties();
+        InputStream inputStream = Cache.class.getClassLoader().getResourceAsStream("properties");
+        properties.load(inputStream);
+
+        String className = properties.getProperty("strategy");
+
+        Class<?> clazz = Class.forName(className);
+        replacementStrategy = (ReplacementStrategy) clazz.newInstance();
+
+        System.out.println(className);
+
     }
 
     public static Cache getCache() {
         return cacheInstance;
     }
 
-    private ReplacementStrategy replacementStrategy = new FIFOReplacement();;    // 替换策略
+    private ReplacementStrategy replacementStrategy ;    // 替换策略
 
     public static boolean isWriteBack;   // 写策略
 
@@ -139,7 +168,10 @@ public class Cache {
             // 命中
 
             // 直接映射无替换策略
+
+
             if(setSize != 1 ){
+                // 有替换策略时
                 replacementStrategy.hit(rowNO);
             }
             return rowNO;
